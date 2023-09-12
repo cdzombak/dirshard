@@ -38,8 +38,8 @@ func main() {
 		"Can be set by the %s environment variable; this flag overrides the env var.", SkipEnvVar))
 	printVersion := flag.Bool("version", false, "Print version and exit.")
 	flag.Usage = func() {
-		fmt.Printf("Usage:\n      %s [OPTIONS] -- some_object_key\n (or) %s [OPTIONS] < cat object_list.txt", binName, binName)
-		fmt.Printf("Produce a path fragment consisting of the first N alhpanumeric/underescore/hyphen " +
+		fmt.Printf("Usage:\n      %s [OPTIONS] -- some_object_key\n (or) %s [OPTIONS] < cat object_list.txt\n", binName, binName)
+		fmt.Printf("\nProduce a path fragment consisting of the first N alhpanumeric/underescore/hyphen " +
 			"characters of the given object key, separated by a path separator.\n")
 		fmt.Printf("No leading or trailing slash is produced.\n")
 		fmt.Printf("\nOptions:\n")
