@@ -34,12 +34,12 @@ func main() {
 		"Can be set by the %s environment variable; this flag overrides the env var.", NEnvVar))
 	ci := flag.Bool(FlagCi, false, fmt.Sprintf("Case-insensitive: letters will be converted to lowercase. "+
 		"Can be set by the %s environment variable; this flag overrides the env var.", CIEnvVar))
-	skip := flag.Bool(FlagSkip, false, fmt.Sprintf("Skip disallowed characters entirely, rather than converting them to underscores. "+
+	skip := flag.Bool(FlagSkip, false, fmt.Sprintf("Skip non-alphanumeric characters entirely, rather than converting them to underscores. "+
 		"Can be set by the %s environment variable; this flag overrides the env var.", SkipEnvVar))
 	printVersion := flag.Bool("version", false, "Print version and exit.")
 	flag.Usage = func() {
 		fmt.Printf("Usage:\n      %s [OPTIONS] -- some_object_key\n (or) %s [OPTIONS] < cat object_list.txt\n", binName, binName)
-		fmt.Printf("\nProduce a path fragment consisting of the first N alhpanumeric/underescore/hyphen " +
+		fmt.Printf("\nProduce a path fragment consisting of the first N alphanumeric " +
 			"characters of the given object key, separated by a path separator.\n")
 		fmt.Printf("No leading or trailing slash is produced.\n")
 		fmt.Printf("\nOptions:\n")
@@ -120,7 +120,7 @@ func dirshard(str string, n int, ci, skip bool) string {
 		if completedIdx == n-1 {
 			break
 		}
-		if !isAllowedChar(r) {
+		if !isAlphanumeric(r) {
 			if skip {
 				continue
 			}
@@ -140,8 +140,8 @@ func dirshard(str string, n int, ci, skip bool) string {
 	return strings.Join(result, string(os.PathSeparator))
 }
 
-func isAllowedChar(r rune) bool {
-	return (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '_' || r == '-'
+func isAlphanumeric(r rune) bool {
+	return (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9')
 }
 
 func wasFlagGiven(flagName string) bool {
