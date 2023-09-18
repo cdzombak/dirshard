@@ -165,10 +165,11 @@ jobs:
       - run: ruby --version
         if: startsWith(github.ref, 'refs/tags/v')
 
-      - name: Install fpm
+      - name: Install fpm & package_cloud
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
           gem install --no-document fpm -v 1.15.1
+          gem install --no-document package_cloud
 
       - name: Build binaries & packages
         if: startsWith(github.ref, 'refs/tags/v')
@@ -200,28 +201,9 @@ jobs:
           mkdir -p ./out-arm
           cp ./out/dirshard-*-arm*.deb ./out-arm
 
-      - name: Push to PackageCloud (Debian/Ubuntu)
-        uses: TykTechnologies/packagecloud-action@main
+      - name: Push to PackageCloud
         if: startsWith(github.ref, 'refs/tags/v')
         env:
           PACKAGECLOUD_TOKEN: ${{ secrets.PACKAGECLOUD_TOKEN }}
-        with:
-          repo: cdzombak/oss
-          dir: ./out
-          debvers: >-
-            debian/jessie debian/stretch debian/buster
-            debian/bullseye debian/bookworm debian/trixie
-            ubuntu/xenial ubuntu/bionic ubuntu/focal
-            ubuntu/jammy
-
-      - name: Push to PackageCloud (RPi OS)
-        uses: TykTechnologies/packagecloud-action@main
-        if: startsWith(github.ref, 'refs/tags/v')
-        env:
-          PACKAGECLOUD_TOKEN: ${{ secrets.PACKAGECLOUD_TOKEN }}
-        with:
-          repo: cdzombak/oss
-          dir: ./out-arm
-          debvers: >-
-            raspbian/jessie raspbian/stretch raspbian/buster
-            raspbian/bullseye
+        run: |
+          package_cloud push --yes cdzombak/oss/any/any out/*.deb
