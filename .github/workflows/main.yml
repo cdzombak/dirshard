@@ -149,9 +149,14 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: stable
+      - run: go version
 
-      - name: Go version
-        run: go version
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+      - run: ruby --version
 
       - name: Install fpm
         run: |
