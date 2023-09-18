@@ -1,13 +1,11 @@
+ARG BIN_NAME
+ARG BIN_VERSION
+
 FROM golang:1 AS builder
-RUN apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install -yq \
-       build-essential \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
 WORKDIR /src/dirshard
 COPY . .
-RUN make build
+RUN go build -ldflags="-X main.version=${BIN_VERSION}" -o ./out/${BIN_NAME} .
 
 FROM scratch
-COPY --from=builder /src/dirshard/out/dirshard /usr/bin/dirshard
+COPY --from=builder /src/dirshard/out/${BIN_NAME} /usr/bin/dirshard
 ENTRYPOINT ["/usr/bin/dirshard"]

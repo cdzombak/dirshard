@@ -58,6 +58,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Derive version string
+        id: bin_version
+        run: >-
+          echo "::set-output name=BIN_VERSION::$(./.bin-version)"
+
       - name: Login to GHCR
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
@@ -106,6 +111,9 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            BIN_NAME=dirshard
+            BIN_VERSION=${{ steps.bin_version.outputs.BIN_VERSION }}
 
       - name: Inspect
         run: |

@@ -1,7 +1,7 @@
 SHELL:=/usr/bin/env bash
 
 BIN_NAME:=dirshard
-VERSION:=$(shell [ -z "$$(git tag --points-at HEAD)" ] && echo "$$(git describe --always --long --dirty | sed 's/^v//')" || echo "$$(git tag --points-at HEAD | sed 's/^v//')")
+BIN_VERSION:=$(shell ./.version.sh)
 
 default: help
 # via https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
@@ -19,31 +19,31 @@ clean: ## Remove build products (./out)
 .PHONY: build
 build: ## Build for the current platform & architecture to ./out
 	mkdir -p out
-	go build -ldflags="-X main.version=${VERSION}" -o ./out/${BIN_NAME} .
+	go build -ldflags="-X main.version=${BIN_VERSION}" -o ./out/${BIN_NAME} .
 
 .PHONY: build-linux-amd64
 build-linux-amd64: ## Build for Linux/amd64 to ./out
-	env GOOS=linux GOARCH=amd64 go build -ldflags="-X main.version=${VERSION}" -o ./out/${BIN_NAME}-linux-amd64 .
+	env GOOS=linux GOARCH=amd64 go build -ldflags="-X main.version=${BIN_VERSION}" -o ./out/${BIN_NAME}-linux-amd64 .
 
 .PHONY: build-linux-arm64
 build-linux-arm64: ## Build for Linux/arm64 to ./out
-	env GOOS=linux GOARCH=arm64 go build -ldflags="-X main.version=${VERSION}" -o ./out/${BIN_NAME}-linux-arm64 .
+	env GOOS=linux GOARCH=arm64 go build -ldflags="-X main.version=${BIN_VERSION}" -o ./out/${BIN_NAME}-linux-arm64 .
 
 .PHONY: build-linux-armv7
 build-linux-armv7: ## Build for Linux/armv7 to ./out
-	env GOOS=linux GOARCH=arm GOARM=7 go build -ldflags="-X main.version=${VERSION}" -o ./out/${BIN_NAME}-linux-armv7 .
+	env GOOS=linux GOARCH=arm GOARM=7 go build -ldflags="-X main.version=${BIN_VERSION}" -o ./out/${BIN_NAME}-linux-armv7 .
 
 .PHONY: build-linux-armv6
 build-linux-armv6: ## Build for Linux/armv6 to ./out
-	env GOOS=linux GOARCH=arm GOARM=6 go build -ldflags="-X main.version=${VERSION}" -o ./out/${BIN_NAME}-linux-armv6 .
+	env GOOS=linux GOARCH=arm GOARM=6 go build -ldflags="-X main.version=${BIN_VERSION}" -o ./out/${BIN_NAME}-linux-armv6 .
 
 .PHONY: build-darwin-amd64
 build-darwin-amd64: ## Build for macOS/amd64 to ./out
-	env GOOS=darwin GOARCH=amd64 go build -ldflags="-X main.version=${VERSION}" -o ./out/${BIN_NAME}-darwin-amd64 .
+	env GOOS=darwin GOARCH=amd64 go build -ldflags="-X main.version=${BIN_VERSION}" -o ./out/${BIN_NAME}-darwin-amd64 .
 
 .PHONY: build-darwin-arm64
 build-darwin-arm64: ## Build for macOS/arm64 to ./out
-	env GOOS=darwin GOARCH=arm64 go build -ldflags="-X main.version=${VERSION}" -o ./out/${BIN_NAME}-darwin-arm64 .
+	env GOOS=darwin GOARCH=arm64 go build -ldflags="-X main.version=${BIN_VERSION}" -o ./out/${BIN_NAME}-darwin-arm64 .
 
 .PHONY: lint
 lint: ## Lint all source files in this repository (requires nektos/act: https://nektosact.com)
