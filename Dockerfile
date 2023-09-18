@@ -1,4 +1,4 @@
-FROM golang:1 AS builder
+FROM golang:1-alpine AS builder
 WORKDIR /src/dirshard
 COPY . .
 RUN make build
