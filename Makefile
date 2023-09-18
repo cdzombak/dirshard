@@ -47,10 +47,10 @@ build-darwin-arm64: ## Build for macOS/arm64 to ./out
 
 .PHONY: package
 package: all ## Build all binaries + .deb packages to ./out (requires fpm)
-	fpm -t deb -p --version ${BIN_VERSION} ./out/${BIN_NAME}-${BIN_VERSION}-amd64.deb --architecture amd64 ./out/${BIN_NAME}-linux-amd64=/usr/bin/${BIN_NAME}
-	fpm -t deb -p --version ${BIN_VERSION} ./out/${BIN_NAME}-${BIN_VERSION}-arm64.deb --architecture arm64 ./out/${BIN_NAME}-linux-arm64=/usr/bin/${BIN_NAME}
-	fpm -t deb -p --version ${BIN_VERSION} ./out/${BIN_NAME}-${BIN_VERSION}-armhf.deb --architecture armhf ./out/${BIN_NAME}-linux-armv7=/usr/bin/${BIN_NAME}
-	fpm -t deb -p --version ${BIN_VERSION} ./out/${BIN_NAME}-${BIN_VERSION}-armel.deb --architecture armel ./out/${BIN_NAME}-linux-armv6=/usr/bin/${BIN_NAME}
+	fpm -t deb --version ${BIN_VERSION} -p ./out/${BIN_NAME}-${BIN_VERSION}-amd64.deb --architecture amd64 ./out/${BIN_NAME}-linux-amd64=/usr/bin/${BIN_NAME}
+	fpm -t deb --version ${BIN_VERSION} -p ./out/${BIN_NAME}-${BIN_VERSION}-arm64.deb --architecture arm64 ./out/${BIN_NAME}-linux-arm64=/usr/bin/${BIN_NAME}
+	fpm -t deb --version ${BIN_VERSION} -p ./out/${BIN_NAME}-${BIN_VERSION}-armhf.deb --architecture armhf ./out/${BIN_NAME}-linux-armv7=/usr/bin/${BIN_NAME}
+	fpm -t deb --version ${BIN_VERSION} -p ./out/${BIN_NAME}-${BIN_VERSION}-armel.deb --architecture armel ./out/${BIN_NAME}-linux-armv6=/usr/bin/${BIN_NAME}
 
 .PHONY: lint
 lint: ## Lint all source files in this repository (requires nektos/act: https://nektosact.com)
