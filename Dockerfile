@@ -1,5 +1,5 @@
-ARG BIN_NAME
-ARG BIN_VERSION
+ARG BIN_NAME=dirshard
+ARG BIN_VERSION=<unknown>
 
 FROM golang:1 AS builder
 WORKDIR /src/dirshard
