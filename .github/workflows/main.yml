@@ -171,5 +171,6 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         with:
           files: out/dirshard-*
+          prerelease: ${{ contains(github.ref, '-alpha.') || contains(github.ref, '-beta.') || contains(github.ref, '-rc.') }}
           fail_on_unmatched_files: true
           generate_release_notes: true
