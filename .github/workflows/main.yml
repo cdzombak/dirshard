@@ -151,18 +151,26 @@ jobs:
           go-version: stable
       - run: go version
 
+      - name: Build binaries
+        if: "!startsWith(github.ref, 'refs/tags/v')"
+        run: make all
+
       - name: Setup Ruby
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.2'
           bundler-cache: true
       - run: ruby --version
+        if: startsWith(github.ref, 'refs/tags/v')
 
       - name: Install fpm
+        if: startsWith(github.ref, 'refs/tags/v')
         run: |
           gem install --no-document fpm -v 1.15.1
 
       - name: Build binaries & packages
+        if: startsWith(github.ref, 'refs/tags/v')
         run: make package
 
       - name: Upload artifacts
@@ -171,11 +179,48 @@ jobs:
           name: dirshard binaries
           path: out/dirshard-*
 
-      - name: Release
+      - name: Create GitHub release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/v')
         with:
           files: out/dirshard-*
-          prerelease: ${{ contains(github.ref, '-alpha.') || contains(github.ref, '-beta.') || contains(github.ref, '-rc.') }}
+          prerelease: >-
+            ${{
+              contains(github.ref, '-alpha.')
+              || contains(github.ref, '-beta.')
+              || contains(github.ref, '-rc.')
+            }}
           fail_on_unmatched_files: true
           generate_release_notes: true
+
+      - name: Copy ARM packages for RPi OS
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          mkdir -p ./out-arm
+          cp ./out/dirshard-*-arm*.deb ./out-arm
+
+      - name: Push to PackageCloud (Debian/Ubuntu)
+        uses: TykTechnologies/packagecloud-action
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          PACKAGECLOUD_TOKEN: ${{ secrets.PACKAGECLOUD_TOKEN }}
+        with:
+          repo: cdzombak/oss
+          dir: ./out
+          debvers: >-
+            debian/jessie debian/stretch debian/buster
+            debian/bullseye debian/bookworm debian/trixie
+            ubuntu/xenial ubuntu/bionic ubuntu/focal
+            ubuntu/jammy
+
+      - name: Push to PackageCloud (RPi OS)
+        uses: TykTechnologies/packagecloud-action
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          PACKAGECLOUD_TOKEN: ${{ secrets.PACKAGECLOUD_TOKEN }}
+        with:
+          repo: cdzombak/oss
+          dir: ./out-arm
+          debvers: >-
+            raspbian/jessie raspbian/stretch raspbian/buster
+            raspbian/bullseye
