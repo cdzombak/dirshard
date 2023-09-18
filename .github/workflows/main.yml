@@ -60,7 +60,7 @@ jobs:
 
       - name: Derive version string
         id: bin_version
-        run: echo "::set-output name=BIN_VERSION::$(./.bin-version)"
+        run: echo "BIN_VERSION=$(./.bin-version)" >> $GITHUB_OUTPUT
 
       - name: Login to GHCR
         if: github.event_name != 'pull_request'
