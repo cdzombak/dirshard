@@ -136,7 +136,7 @@ jobs:
 
   build-binaries:
     name: Build & Release Binaries
-    # needs: lint
+    needs: lint
     runs-on: ubuntu-latest
     permissions:
       contents: write

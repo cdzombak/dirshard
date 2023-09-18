@@ -4,8 +4,7 @@ BIN_NAME:=dirshard
 BIN_VERSION:=$(shell ./.version.sh)
 
 default: help
-# via https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
-.PHONY: help
+.PHONY: help  # via https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help: ## Print help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
@@ -46,11 +45,11 @@ build-darwin-arm64: ## Build for macOS/arm64 to ./out
 	env GOOS=darwin GOARCH=arm64 go build -ldflags="-X main.version=${BIN_VERSION}" -o ./out/${BIN_NAME}-darwin-arm64 .
 
 .PHONY: package
-package: all ## Build all binaries + .deb packages to ./out (requires fpm)
-	fpm -t deb --version ${BIN_VERSION} -p ./out/${BIN_NAME}-${BIN_VERSION}-amd64.deb --architecture amd64 ./out/${BIN_NAME}-linux-amd64=/usr/bin/${BIN_NAME}
-	fpm -t deb --version ${BIN_VERSION} -p ./out/${BIN_NAME}-${BIN_VERSION}-arm64.deb --architecture arm64 ./out/${BIN_NAME}-linux-arm64=/usr/bin/${BIN_NAME}
-	fpm -t deb --version ${BIN_VERSION} -p ./out/${BIN_NAME}-${BIN_VERSION}-armhf.deb --architecture armhf ./out/${BIN_NAME}-linux-armv7=/usr/bin/${BIN_NAME}
-	fpm -t deb --version ${BIN_VERSION} -p ./out/${BIN_NAME}-${BIN_VERSION}-armel.deb --architecture armel ./out/${BIN_NAME}-linux-armv6=/usr/bin/${BIN_NAME}
+package: all ## Build all binaries + .deb packages to ./out (requires fpm: https://fpm.readthedocs.io)
+	fpm -t deb -v ${BIN_VERSION} -p ./out/${BIN_NAME}-${BIN_VERSION}-amd64.deb -a amd64 ./out/${BIN_NAME}-linux-amd64=/usr/bin/${BIN_NAME}
+	fpm -t deb -v ${BIN_VERSION} -p ./out/${BIN_NAME}-${BIN_VERSION}-arm64.deb -a arm64 ./out/${BIN_NAME}-linux-arm64=/usr/bin/${BIN_NAME}
+	fpm -t deb -v ${BIN_VERSION} -p ./out/${BIN_NAME}-${BIN_VERSION}-armhf.deb -a armhf ./out/${BIN_NAME}-linux-armv7=/usr/bin/${BIN_NAME}
+	fpm -t deb -v ${BIN_VERSION} -p ./out/${BIN_NAME}-${BIN_VERSION}-armel.deb -a armel ./out/${BIN_NAME}-linux-armv6=/usr/bin/${BIN_NAME}
 
 .PHONY: lint
 lint: ## Lint all source files in this repository (requires nektos/act: https://nektosact.com)
