@@ -61,6 +61,7 @@ jobs:
       - name: Derive version string
         id: bin_version
         run: echo "BIN_VERSION=$(./.version.sh)" >> $GITHUB_OUTPUT
+      - run: 'echo version: ${{ steps.bin_version.outputs.BIN_VERSION }}'
 
       - name: Login to GHCR
         if: github.event_name != 'pull_request'
