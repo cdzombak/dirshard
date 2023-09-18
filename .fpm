@@ -1,0 +1,5 @@
+-s dir
+--name dirshard
+--description "Produce path fragments from a filename"
+--url "https://github.com/cdzombak/dirshard"
+--maintainer "Chris Dzombak <https://www.dzombak.com>"
