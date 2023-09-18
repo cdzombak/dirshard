@@ -11,4 +11,5 @@ RUN go build -ldflags="-X main.version=${BIN_VERSION}" -o ./out/${BIN_NAME} .
 FROM scratch
 ARG BIN_NAME
 COPY --from=builder /src/dirshard/out/${BIN_NAME} /usr/bin/dirshard
+RUN /usr/bin/dirshard -version
 ENTRYPOINT ["/usr/bin/dirshard"]
