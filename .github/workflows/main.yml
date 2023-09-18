@@ -195,12 +195,6 @@ jobs:
           fail_on_unmatched_files: true
           generate_release_notes: true
 
-      - name: Copy ARM packages for RPi OS
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: |
-          mkdir -p ./out-arm
-          cp ./out/dirshard-*-arm*.deb ./out-arm
-
       - name: Push to PackageCloud
         if: startsWith(github.ref, 'refs/tags/v')
         env:
