@@ -47,7 +47,7 @@ jobs:
 
 
   build-docker:
-    name: Build & Push Docker images
+    name: Build & Push Docker Images
     needs: lint
     runs-on: ubuntu-latest
     permissions:
