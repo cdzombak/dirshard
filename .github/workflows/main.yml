@@ -22,7 +22,6 @@ jobs:
 
   meta:
     name: Derive Build Metadata
-    id: meta
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -85,7 +84,7 @@ jobs:
             mega-linter.log
 
 
-  build-docker:
+  docker:
     name: Build & Push Docker Images
     needs: [lint, meta]
     runs-on: ubuntu-latest
@@ -168,9 +167,8 @@ jobs:
           short-description: ${{ github.event.repository.description }}
 
 
-  build-binaries:
+  binaries:
     name: Build Binaries & Debian Packages
-    id: binaries
     needs: [lint, meta]
     runs-on: ubuntu-latest
 
@@ -205,7 +203,7 @@ jobs:
           path: out/${{ needs.meta.outputs.bin_name }}-*
 
 
-  release-binaries:
+  release:
     name: Create GitHub Release
     needs: [meta, binaries]
     if: >-
@@ -235,7 +233,7 @@ jobs:
           generate_release_notes: true
 
 
-  push-binaries:
+  packagecloud:
     name: Push to PackageCloud
     needs: [meta, binaries]
     if: needs.meta.outputs.is_release == 'true'
@@ -270,7 +268,7 @@ jobs:
           package_cloud push --yes ${{ needs.meta.outputs.packagecloud_owner }}/${{ needs.meta.outputs.packagecloud_repo }}/any/any ${{ steps.download.outputs.download-path }}/*.deb
 
 
-  release-homebrew:
+  homebrew:
     name: Update Homebrew Tap
     needs: [meta, binaries]
     if: needs.meta.outputs.is_release == 'true'
