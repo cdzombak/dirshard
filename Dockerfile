@@ -1,6 +1,17 @@
 ARG BIN_NAME=dirshard
 ARG BIN_VERSION=<unknown>
 
+LABEL license="LGPL3"
+LABEL maintainer="Chris Dzombak <https://www.dzombak.com>"
+LABEL org.opencontainers.image.authors="Chris Dzombak <https://www.dzombak.com>"
+LABEL org.opencontainers.image.url="https://github.com/cdzombak/dirshard"
+LABEL org.opencontainers.image.documentation="https://github.com/cdzombak/dirshard/blob/main/README.md"
+LABEL org.opencontainers.image.source="https://github.com/cdzombak/dirshard.git"
+LABEL org.opencontainers.image.version="${BIN_VERSION}"
+LABEL org.opencontainers.image.licenses="LGPL3"
+LABEL org.opencontainers.image.title="${BIN_NAME}"
+LABEL org.opencontainers.image.description="Produce sharded path fragments from a filename"
+
 FROM golang:1 AS builder
 ARG BIN_NAME
 ARG BIN_VERSION
