@@ -5,7 +5,7 @@ Produce sharded path fragments from a filename.
 ## Usage
 ```
       dirshard [OPTIONS] -- some_object_key
- (or) dirshard [OPTIONS] < cat object_list.txt
+ (or) cat object_list.txt | dirshard [OPTIONS]
 ```
 
 Produces a path fragment consisting of the first N alphanumeric characters of the given object key, separated by a path separator.

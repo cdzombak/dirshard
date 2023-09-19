@@ -38,7 +38,7 @@ func main() {
 		"Can be set by the %s environment variable; this flag overrides the env var.", SkipEnvVar))
 	printVersion := flag.Bool("version", false, "Print version and exit.")
 	flag.Usage = func() {
-		_, _ = fmt.Fprintf(os.Stderr, "Usage:\n      %s [OPTIONS] -- some_object_key\n (or) %s [OPTIONS] < cat object_list.txt\n", binName, binName)
+		_, _ = fmt.Fprintf(os.Stderr, "Usage:\n      %s [OPTIONS] -- some_object_key\n (or) cat object_list.txt | %s [OPTIONS]\n", binName, binName)
 		_, _ = fmt.Fprintf(os.Stderr, "\nProduce a path fragment consisting of the first N alphanumeric "+
 			"characters of the given object key, separated by a path separator.\n")
 		_, _ = fmt.Fprintf(os.Stderr, "No leading or trailing slash is produced.\n")
