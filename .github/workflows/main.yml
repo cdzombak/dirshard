@@ -201,7 +201,7 @@ jobs:
         run: |
           mkdir ./gh-release
           cp *.deb ./gh-release/
-          find . -name '${{ needs.meta.outputs.bin_name }}-*' -executable -type f -maxdepth 1 | xargs -I {} tar czvf ./gh-release/{}.tar.gz {}
+          find . -name '${{ needs.meta.outputs.bin_name }}-*' -executable -type f -maxdepth 1 | xargs -I {} tar --transform='flags=r;s|.*|${{ needs.meta.outputs.bin_name }}|' -czvf ./gh-release/{}.tar.gz {}
       - name: Upload binaries & packages
         uses: actions/upload-artifact@v3
         with:
