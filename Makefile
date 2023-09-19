@@ -10,7 +10,7 @@ help: ## Print help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: all
-all: clean build build-linux-amd64 build-linux-arm64 build-linux-armv7 build-linux-armv6 build-darwin-amd64 build-darwin-arm64 ## Build for macOS (amd64, arm64) and Linux (amd64, arm64, armv7, armv6)
+all: clean build-linux-amd64 build-linux-arm64 build-linux-armv7 build-linux-armv6 build-darwin-amd64 build-darwin-arm64 ## Build for macOS (amd64, arm64) and Linux (amd64, arm64, armv7, armv6)
 
 .PHONY: clean
 clean: ## Remove build products (./out)
