@@ -34,7 +34,7 @@ jobs:
       # nb. homebrew-releaser assumes the program name is == the repository name
       bin_name: ${{ github.event.repository.name }}
       bin_version: ${{ steps.bin_version.outputs.bin_version }}
-      dockerhub_owner: ${{ secrets.DOCKERHUB_USERNAME }}
+      dockerhub_owner: ${{ github.repository_owner }}
       ghcr_owner: ${{ github.repository_owner }}
       packagecloud_owner: ${{ github.repository_owner }}
       packagecloud_repo: oss
