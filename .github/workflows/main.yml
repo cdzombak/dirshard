@@ -149,7 +149,6 @@ jobs:
             ${{ needs.meta.outputs.dockerhub_owner }}/${{ needs.meta.outputs.bin_name }}
             ghcr.io/${{ needs.meta.outputs.ghcr_owner }}/${{ needs.meta.outputs.bin_name }}
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
             type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}}
@@ -168,11 +167,6 @@ jobs:
           labels: ${{ steps.docker_meta.outputs.labels }}
           build-args: |
             BIN_VERSION=${{ needs.meta.outputs.bin_version }}
-
-      - name: Inspect
-        run: |
-          docker buildx imagetools inspect ${{ needs.meta.outputs.dockerhub_owner }}/${{ needs.meta.outputs.bin_name }}:latest
-          docker buildx imagetools inspect ghcr.io/${{ needs.meta.outputs.ghcr_owner }}/${{ needs.meta.outputs.bin_name }}:latest
 
       - name: Update Docker Hub description
         if: needs.meta.outputs.is_release == 'true'
