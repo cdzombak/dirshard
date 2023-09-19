@@ -38,15 +38,15 @@ func main() {
 		"Can be set by the %s environment variable; this flag overrides the env var.", SkipEnvVar))
 	printVersion := flag.Bool("version", false, "Print version and exit.")
 	flag.Usage = func() {
-		fmt.Printf("Usage:\n      %s [OPTIONS] -- some_object_key\n (or) %s [OPTIONS] < cat object_list.txt\n", binName, binName)
-		fmt.Printf("\nProduce a path fragment consisting of the first N alphanumeric " +
+		_, _ = fmt.Fprintf(os.Stderr, "Usage:\n      %s [OPTIONS] -- some_object_key\n (or) %s [OPTIONS] < cat object_list.txt\n", binName, binName)
+		_, _ = fmt.Fprintf(os.Stderr, "\nProduce a path fragment consisting of the first N alphanumeric "+
 			"characters of the given object key, separated by a path separator.\n")
-		fmt.Printf("No leading or trailing slash is produced.\n")
-		fmt.Printf("\nOptions:\n")
+		_, _ = fmt.Fprintf(os.Stderr, "No leading or trailing slash is produced.\n")
+		_, _ = fmt.Fprintf(os.Stderr, "\nOptions:\n")
 		flag.PrintDefaults()
-		fmt.Printf("\nVersion:\n  dirshard %s\n", version)
-		fmt.Printf("\nGitHub:\n  https://github.com/cdzombak/dirshard\n")
-		fmt.Printf("\nAuthor:\n  Chris Dzombak <https://www.dzombak.com>\n")
+		_, _ = fmt.Fprintf(os.Stderr, "\nVersion:\n  dirshard %s\n", version)
+		_, _ = fmt.Fprintf(os.Stderr, "\nGitHub:\n  https://github.com/cdzombak/dirshard\n")
+		_, _ = fmt.Fprintf(os.Stderr, "\nAuthor:\n  Chris Dzombak <https://www.dzombak.com>\n")
 	}
 	flag.Parse()
 
