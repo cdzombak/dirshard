@@ -196,15 +196,21 @@ jobs:
 
       - name: Build binaries & packages
         run: make package
+      - name: Prepare release artifacts
+        working-directory: out/
+        run: |
+          mkdir ./gh-release
+          cp *.deb ./gh-release/
+          find . -name '${{ needs.meta.outputs.bin_name }}-*' -executable -type f -maxdepth 1 -print0 | xargs -I {} tar czvf ./gh-release/{}.tar.gz {}
       - name: Upload binaries & packages
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ needs.meta.outputs.bin_name }} Binaries and Packages
-          path: out/${{ needs.meta.outputs.bin_name }}-*
+          name: ${{ needs.meta.outputs.bin_name }} Binary Artifacts
+          path: out/gh-release/*
 
 
   release:
-    name: Create GitHub Release
+    name: Create GitHub (Pre)Release
     needs: [meta, binaries]
     if: >-
           needs.meta.outputs.is_release == 'true' ||
@@ -218,11 +224,11 @@ jobs:
         uses: actions/download-artifact@v3
         id: download
         with:
-          name: ${{ needs.meta.outputs.bin_name }} Binaries and Packages
+          name: ${{ needs.meta.outputs.bin_name }} Binary Artifacts
           path: out
       - name: List artifacts
-        run: ls -R
         working-directory: ${{steps.download.outputs.download-path}}
+        run: ls -R
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v1
