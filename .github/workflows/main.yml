@@ -55,7 +55,7 @@ jobs:
                 || contains(github.ref, '-beta.')
                 || contains(github.ref, '-rc.'))
             }}
-      is_pull_request: ${{ github.event_name != 'pull_request' }}
+      is_pull_request: ${{ github.event_name == 'pull_request' }}
 
 
   lint:
