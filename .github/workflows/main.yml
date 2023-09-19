@@ -14,6 +14,10 @@ name: CI
 permissions:
   contents: read
 
+env:
+  DOCKER_PLATFORMS: "linux/amd64,linux/arm64,linux/386,linux/arm/v7,linux/arm/v6"
+  FPM_VERSION: 1.15.1
+
 jobs:
 
   meta:
@@ -28,6 +32,16 @@ jobs:
         run: echo "bin_version=$(./.version.sh)" >> $GITHUB_OUTPUT
       - run: 'echo version: ${{ steps.bin_version.outputs.bin_version }}'
     outputs:
+      # nb. homebrew-releaser assumes the program name is == the repository name
+      bin_name: ${{ github.event.repository.name }}
+      bin_version: ${{ steps.bin_version.outputs.bin_version }}
+      dockerhub_owner: ${{ secrets.DOCKERHUB_USERNAME }}
+      ghcr_owner: ${{ github.repository_owner }}
+      packagecloud_owner: ${{ github.repository_owner }}
+      packagecloud_repo: oss
+      brewtap_owner: ${{ github.repository_owner }}
+      brewtap_name: oss
+      brewtap_formula_dir: formula
       is_prerelease: >-
             ${{
               startsWith(github.ref, 'refs/tags/v') &&
@@ -43,7 +57,6 @@ jobs:
                 || contains(github.ref, '-rc.'))
             }}
       is_pull_request: ${{ github.event_name != 'pull_request' }}
-      bin_version: ${{ steps.bin_version.outputs.bin_version }}
 
 
   lint:
@@ -55,17 +68,13 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Run MegaLinter
-        id: ml
         uses: oxsecurity/megalinter@v7
         env:
           # See https://megalinter.io/configuration and .mega-linter.yml
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Archive MegaLinter artifacts
         if: ( !env.ACT && ( success() || failure() ) )
         uses: actions/upload-artifact@v3
@@ -120,8 +129,8 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            cdzombak/dirshard
-            ghcr.io/cdzombak/dirshard
+            ${{ needs.meta.outputs.dockerhub_owner }}/${{ needs.meta.outputs.bin_name }}
+            ghcr.io/${{ needs.meta.outputs.ghcr_owner }}/${{ needs.meta.outputs.bin_name }}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=ref,event=branch
@@ -135,7 +144,7 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          platforms: linux/amd64,linux/arm64,linux/386,linux/arm/v7,linux/arm/v6
+          platforms: ${{ env.DOCKER_PLATFORMS }}
           builder: ${{ steps.buildx.outputs.name }}
           push: ${{ needs.meta.outputs.is_pull_request != 'true' }}
           tags: ${{ steps.docker_meta.outputs.tags }}
@@ -145,8 +154,8 @@ jobs:
 
       - name: Inspect
         run: |
-          docker buildx imagetools inspect cdzombak/dirshard:latest
-          docker buildx imagetools inspect ghcr.io/cdzombak/dirshard:latest
+          docker buildx imagetools inspect ${{ needs.meta.outputs.dockerhub_owner }}/${{ needs.meta.outputs.bin_name }}:latest
+          docker buildx imagetools inspect ghcr.io/${{ needs.meta.outputs.ghcr_owner }}/${{ needs.meta.outputs.bin_name }}:latest
 
       - name: Update Docker Hub description
         if: needs.meta.outputs.is_release == 'true'
@@ -154,9 +163,9 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: cdzombak/dirshard
+          repository: ${{ needs.meta.outputs.dockerhub_owner }}/${{ needs.meta.outputs.bin_name }}
           readme-filepath: ./README.md
-          short-description: "Produce path fragments from a filename"
+          short-description: ${{ github.event.repository.description }}
 
 
   build-binaries:
@@ -173,25 +182,27 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: stable
-      - run: go version
+      - name: Go version
+        run: go version
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.2'
           bundler-cache: true
-      - run: ruby --version
+      - name: Ruby version
+        run: ruby --version
       - name: Install fpm
         run: |
-          gem install --no-document fpm -v 1.15.1
+          gem install --no-document fpm -v "$FPM_VERSION"
 
       - name: Build binaries & packages
         run: make package
       - name: Upload binaries & packages
         uses: actions/upload-artifact@v3
         with:
-          name: dirshard Binaries and Packages
-          path: out/dirshard-*
+          name: ${{ needs.meta.outputs.bin_name }} Binaries and Packages
+          path: out/${{ needs.meta.outputs.bin_name }}-*
 
 
   release-binaries:
@@ -209,15 +220,16 @@ jobs:
         uses: actions/download-artifact@v3
         id: download
         with:
-          name: dirshard Binaries and Packages
+          name: ${{ needs.meta.outputs.bin_name }} Binaries and Packages
           path: out
-      - run: ls -R
+      - name: List artifacts
+        run: ls -R
         working-directory: ${{steps.download.outputs.download-path}}
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v1
         with:
-          files: ${{steps.download.outputs.download-path}}/dirshard-*
+          files: ${{steps.download.outputs.download-path}}/${{ needs.meta.outputs.bin_name }}-*
           prerelease: ${{ needs.meta.outputs.is_prerelease == 'true' }}
           fail_on_unmatched_files: true
           generate_release_notes: true
@@ -234,18 +246,20 @@ jobs:
         uses: actions/download-artifact@v3
         id: download
         with:
-          name: dirshard Binaries and Packages
+          name: ${{ needs.meta.outputs.bin_name }} Binaries and Packages
           path: out
-      - run: ls -R
-        working-directory: ${{steps.download.outputs.download-path}}
+      - name: List artifacts
+        run: ls -R
+        working-directory: ${{ steps.download.outputs.download-path }}
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.2'
           bundler-cache: true
+      - name: Ruby version
         run: ruby --version
-      - name: Install package_cloud
+      - name: Install PackageCloud CLI
         run: |
           gem install --no-document package_cloud
 
@@ -253,7 +267,7 @@ jobs:
         env:
           PACKAGECLOUD_TOKEN: ${{ secrets.PACKAGECLOUD_TOKEN }}
         run: |
-          package_cloud push --yes cdzombak/oss/any/any ${{steps.download.outputs.download-path}}/*.deb
+          package_cloud push --yes ${{ needs.meta.outputs.packagecloud_owner }}/${{ needs.meta.outputs.packagecloud_repo }}/any/any ${{ steps.download.outputs.download-path }}/*.deb
 
 
   release-homebrew:
@@ -262,12 +276,12 @@ jobs:
     if: needs.meta.outputs.is_release == 'true'
     runs-on: ubuntu-latest
     steps:
-      - name: Release to cdzombak/oss tap
+      - name: Release to ${{ needs.meta.outputs.brewtap_owner }}/${{ needs.meta.outputs.brewtap_name }} tap
         uses: Justintime50/homebrew-releaser@v1
         with:
-          homebrew_owner: cdzombak
-          homebrew_tap: homebrew-oss
-          formula_folder: formula
+          homebrew_owner: ${{ needs.meta.outputs.brewtap_owner }}
+          homebrew_tap: homebrew-${{ needs.meta.outputs.brewtap_name }}
+          formula_folder: ${{ needs.meta.outputs.brewtap_formula_dir }}
           update_readme_table: true
           github_token: ${{ secrets.HOMEBREW_RELEASER_PAT }}
           commit_owner: homebrew-releaser-bot
@@ -278,5 +292,5 @@ jobs:
           target_linux_amd64: true
           target_linux_arm64: true
 
-          install: 'bin.install "dirshard"'
-          test: 'assert_match("${{ steps.bin_version.outputs.BIN_VERSION }}", shell_output("dirshard -version"))'
+          install: 'bin.install "${{ needs.meta.outputs.bin_name }}"'
+          test: 'assert_match("${{ needs.meta.outputs.bin_version }}", shell_output("${{ needs.meta.outputs.bin_name }} -version"))'
