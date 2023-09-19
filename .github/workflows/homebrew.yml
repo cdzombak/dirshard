@@ -1,0 +1,58 @@
+# Start Homebrew Releaser when a new GitHub release is created
+
+---
+name: Release to Homebrew
+
+"on":
+  release:
+    types: [published]
+
+jobs:
+
+  homebrew-releaser:
+    runs-on: ubuntu-latest
+    name: homebrew-releaser
+    # if: "!github.event.release.prerelease"
+
+    steps:
+      - name: Calculate expected version output
+        id: bin_version
+        run: |
+          TAG=${{ github.event.release.tag_name }}
+          echo "BIN_VERSION=${TAG#v}" >> $GITHUB_OUTPUT
+      - run: 'echo version: ${{ steps.bin_version.outputs.BIN_VERSION }}'
+
+      - name: Release to cdzombak/oss tap
+        uses: Justintime50/homebrew-releaser@v1
+        with:
+          homebrew_owner: cdzombak
+          homebrew_tap: homebrew-oss
+          formula_folder: formula
+          github_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          commit_owner: homebrew-releaser-bot
+          commit_email: homebrew-releaser-bot@users.noreply.github.com
+
+          target_darwin_amd64: true
+          target_darwin_arm64: true
+          target_linux_amd64: true
+          target_linux_arm64: true
+          install: 'bin.install "dirshard"'
+          test: 'assert_match("${{ steps.bin_version.outputs.BIN_VERSION }}", shell_output("dirshard -version"))'
+
+          # Update your homebrew tap's README with a table of all projects in the tap.
+          # This is done by pulling the information from all your formula.rb files - eg:
+          #
+          # | Project                                    | Description  | Install                  |
+          # | ------------------------------------------ | ------------ | ------------------------ |
+          # | [formula_1](https://github.com/user/repo1) | helpful text | `brew install formula_1` |
+          # | [formula_2](https://github.com/user/repo2) | helpful text | `brew install formula_2` |
+          # | [formula_3](https://github.com/user/repo3) | helpful text | `brew install formula_3` |
+          #
+          # Place the following in your README or wrap your project's table in these comment tags:
+          # <!-- project_table_start -->
+          # TABLE HERE
+          # <!-- project_table_end -->
+          #
+          # Finally, mark `update_readme_table` as `true` in your GitHub Action config and we'll do the work of building a custom table for you.
+          # Default is `false` - boolean
+          update_readme_table: true
