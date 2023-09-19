@@ -55,7 +55,7 @@ jobs:
       brewtap_formula_dir: formula
       is_prerelease: >-
             ${{
-              steps.running_version_tag.outputs.is_running_version_tag_update != "true" &&
+              steps.running_version_tag.outputs.is_running_version_tag_update != 'true' &&
               startsWith(github.ref, 'refs/tags/v') &&
                 (contains(github.ref, '-alpha.')
                 || contains(github.ref, '-beta.')
@@ -63,7 +63,7 @@ jobs:
             }}
       is_release: >-
             ${{
-              steps.running_version_tag.outputs.is_running_version_tag_update != "true" &&
+              steps.running_version_tag.outputs.is_running_version_tag_update != 'true' &&
               startsWith(github.ref, 'refs/tags/v') &&
                 !(contains(github.ref, '-alpha.')
                 || contains(github.ref, '-beta.')
@@ -240,7 +240,7 @@ jobs:
           name: ${{ needs.meta.outputs.bin_name }} Binary Artifacts
           path: out
       - name: List artifacts
-        working-directory: ${{steps.download.outputs.download-path}}
+        working-directory: ${{ steps.download.outputs.download-path }}
         run: ls -R
 
       - name: Create GitHub release
