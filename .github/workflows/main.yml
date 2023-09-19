@@ -16,6 +16,36 @@ permissions:
 
 jobs:
 
+  meta:
+    name: Derive Build Metadata
+    id: meta
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Derive version string
+        id: bin_version
+        run: echo "bin_version=$(./.version.sh)" >> $GITHUB_OUTPUT
+      - run: 'echo version: ${{ steps.bin_version.outputs.bin_version }}'
+    outputs:
+      is_prerelease: >-
+            ${{
+              startsWith(github.ref, 'refs/tags/v') &&
+                (contains(github.ref, '-alpha.')
+                || contains(github.ref, '-beta.')
+                || contains(github.ref, '-rc.'))
+            }}
+      is_release: >-
+            ${{
+              startsWith(github.ref, 'refs/tags/v') &&
+                !(contains(github.ref, '-alpha.')
+                || contains(github.ref, '-beta.')
+                || contains(github.ref, '-rc.'))
+            }}
+      is_pull_request: ${{ github.event_name != 'pull_request' }}
+      bin_version: ${{ steps.bin_version.outputs.bin_version }}
+
+
   lint:
     name: Lint
     runs-on: ubuntu-latest
@@ -48,7 +78,7 @@ jobs:
 
   build-docker:
     name: Build & Push Docker Images
-    needs: lint
+    needs: [lint, meta]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -58,13 +88,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Derive version string
-        id: bin_version
-        run: echo "BIN_VERSION=$(./.version.sh)" >> $GITHUB_OUTPUT
-      - run: 'echo version: ${{ steps.bin_version.outputs.BIN_VERSION }}'
-
       - name: Login to GHCR
-        if: github.event_name != 'pull_request'
+        if: needs.meta.outputs.is_pull_request != 'true'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -72,7 +97,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Login to Docker Hub
-        if: github.event_name != 'pull_request'
+        if: needs.meta.outputs.is_pull_request != 'true'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -91,7 +116,7 @@ jobs:
         run: echo ${{ steps.buildx.outputs.platforms }}
 
       - name: Docker meta
-        id: meta
+        id: docker_meta
         uses: docker/metadata-action@v5
         with:
           images: |
@@ -104,7 +129,6 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-            type=sha
 
       - name: Build and push
         uses: docker/build-push-action@v5
@@ -113,11 +137,11 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64,linux/386,linux/arm/v7,linux/arm/v6
           builder: ${{ steps.buildx.outputs.name }}
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          push: ${{ needs.meta.outputs.is_pull_request != 'true' }}
+          tags: ${{ steps.docker_meta.outputs.tags }}
+          labels: ${{ steps.docker_meta.outputs.labels }}
           build-args: |
-            BIN_VERSION=${{ steps.bin_version.outputs.BIN_VERSION }}
+            BIN_VERSION=${{ needs.meta.outputs.bin_version }}
 
       - name: Inspect
         run: |
@@ -125,7 +149,7 @@ jobs:
           docker buildx imagetools inspect ghcr.io/cdzombak/dirshard:latest
 
       - name: Update Docker Hub description
-        if: github.event_name != 'pull_request'
+        if: needs.meta.outputs.is_release == 'true'
         uses: peter-evans/dockerhub-description@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -136,11 +160,10 @@ jobs:
 
 
   build-binaries:
-    name: Build & Release Binaries
-    needs: lint
+    name: Build Binaries & Debian Packages
+    id: binaries
+    needs: [lint, meta]
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
       - name: Checkout
@@ -152,56 +175,108 @@ jobs:
           go-version: stable
       - run: go version
 
-      - name: Build binaries (only)
-        if: "!startsWith(github.ref, 'refs/tags/v')"
-        run: make all
-
       - name: Setup Ruby
-        if: startsWith(github.ref, 'refs/tags/v')
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.2'
           bundler-cache: true
       - run: ruby --version
-        if: startsWith(github.ref, 'refs/tags/v')
-
-      - name: Install fpm & package_cloud
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Install fpm
         run: |
           gem install --no-document fpm -v 1.15.1
-          gem install --no-document package_cloud
 
       - name: Build binaries & packages
-        if: startsWith(github.ref, 'refs/tags/v')
         run: make package
-
-      - name: Upload artifacts
+      - name: Upload binaries & packages
         uses: actions/upload-artifact@v3
         with:
-          name: dirshard binaries
+          name: dirshard Binaries and Packages
           path: out/dirshard-*
+
+
+  release-binaries:
+    name: Create GitHub Release
+    needs: [meta, binaries]
+    if: >-
+          needs.meta.outputs.is_release == 'true' ||
+          needs.meta.outputs.is_prerelease == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+
+      - name: Download binaries & packages
+        uses: actions/download-artifact@v3
+        id: download
+        with:
+          name: dirshard Binaries and Packages
+          path: out
+      - run: ls -R
+        working-directory: ${{steps.download.outputs.download-path}}
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/v')
         with:
-          files: out/dirshard-*
-          prerelease: >-
-            ${{
-              contains(github.ref, '-alpha.')
-              || contains(github.ref, '-beta.')
-              || contains(github.ref, '-rc.')
-            }}
+          files: ${{steps.download.outputs.download-path}}/dirshard-*
+          prerelease: ${{ needs.meta.outputs.is_prerelease == 'true' }}
           fail_on_unmatched_files: true
           generate_release_notes: true
 
+
+  push-binaries:
+    name: Push to PackageCloud
+    needs: [meta, binaries]
+    if: needs.meta.outputs.is_release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Download binaries & packages
+        uses: actions/download-artifact@v3
+        id: download
+        with:
+          name: dirshard Binaries and Packages
+          path: out
+      - run: ls -R
+        working-directory: ${{steps.download.outputs.download-path}}
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+        run: ruby --version
+      - name: Install package_cloud
+        run: |
+          gem install --no-document package_cloud
+
       - name: Push to PackageCloud
-        if: >-
-          startsWith(github.ref, 'refs/tags/v') &&
-          !contains(github.ref, '-alpha.') &&
-          !contains(github.ref, '-beta.') &&
-          !contains(github.ref, '-rc.')
         env:
           PACKAGECLOUD_TOKEN: ${{ secrets.PACKAGECLOUD_TOKEN }}
         run: |
-          package_cloud push --yes cdzombak/oss/any/any out/*.deb
+          package_cloud push --yes cdzombak/oss/any/any ${{steps.download.outputs.download-path}}/*.deb
+
+
+  release-homebrew:
+    name: Update Homebrew Tap
+    needs: [meta, binaries]
+    if: needs.meta.outputs.is_release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Release to cdzombak/oss tap
+        uses: Justintime50/homebrew-releaser@v1
+        with:
+          homebrew_owner: cdzombak
+          homebrew_tap: homebrew-oss
+          formula_folder: formula
+          update_readme_table: true
+          github_token: ${{ secrets.HOMEBREW_RELEASER_PAT }}
+          commit_owner: homebrew-releaser-bot
+          commit_email: homebrew-releaser-bot@users.noreply.github.com
+
+          target_darwin_amd64: true
+          target_darwin_arm64: true
+          target_linux_amd64: true
+          target_linux_arm64: true
+
+          install: 'bin.install "dirshard"'
+          test: 'assert_match("${{ steps.bin_version.outputs.BIN_VERSION }}", shell_output("dirshard -version"))'
