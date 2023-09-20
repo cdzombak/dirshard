@@ -252,9 +252,19 @@ jobs:
           fail_on_unmatched_files: true
           generate_release_notes: true
 
+
+  tags:
+    name: Update Release Tags
+    needs: [meta, release]
+    if: needs.meta.outputs.is_release == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Update running major/minor version tags
         uses: sersoft-gmbh/running-release-tags-action@v3
-        if: ${{ needs.meta.outputs.is_release == 'true' }}
         with:
           fail-on-non-semver-tag: true
           create-release: false
