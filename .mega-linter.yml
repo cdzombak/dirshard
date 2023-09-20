@@ -2,8 +2,12 @@
 
 ---
 APPLY_FIXES: all
-ENABLE:
-  - GO
+DISABLE:
+  - SPELL
+  - DOCKERFILE
+  - REPOSITORY
+DISABLE_LINTERS:
+  - MAKEFILE_CHECKMAKE
 PLUGINS:
   - https://raw.githubusercontent.com/shiranr/linkcheck/main/mega-linter-plugin-linkcheck/linkcheck.megalinter-descriptor.yml
   - https://raw.githubusercontent.com/cdzombak/mega-linter-plugin-dockerfilelint/main/mega-linter-plugin-dockerfilelint/dockerfilelint.megalinter-descriptor.yml

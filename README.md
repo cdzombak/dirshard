@@ -3,7 +3,7 @@
 Produce sharded path fragments from a filename.
 
 ## Usage
-```
+```text
       dirshard [OPTIONS] -- some_object_key
  (or) cat object_list.txt | dirshard [OPTIONS]
 ```
@@ -20,7 +20,7 @@ No leading or trailing slash is produced.
 
 ### Examples
 
-```
+```text
 $ dirshard abcdef.txt
 a
 
@@ -38,7 +38,7 @@ a/b/_
 
 `dirshard` can read content (eg. a list of filenames) from standard input, outputting newline-delimited path fragments:
 
-```
+```text
 $ echo -e "Foo.txt\nBar.txt" | dirshard -ci
 f
 b
