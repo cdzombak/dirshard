@@ -3,6 +3,7 @@
 Produce sharded path fragments from a filename.
 
 ## Usage
+
 ```text
       dirshard [OPTIONS] -- some_object_key
  (or) cat object_list.txt | dirshard [OPTIONS]
@@ -52,21 +53,28 @@ b
 brew install cdzombak/oss/dirshard
 ```
 
-### Debian via PackageCloud
+### Debian via apt repository
 
-Install my PackageCloud Debian repository if you haven't already:
+Install my Debian repository if you haven't already:
+
 ```shell
-curl -s https://packagecloud.io/install/repositories/cdzombak/oss/script.deb.sh?any=true | sudo bash
+sudo apt-get install ca-certificates curl gnupg
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://dist.cdzombak.net/deb.key | sudo gpg --dearmor -o /etc/apt/keyrings/dist-cdzombak-net.gpg
+sudo chmod 0644 /etc/apt/keyrings/dist-cdzombak-net.gpg
+echo -e "deb [signed-by=/etc/apt/keyrings/dist-cdzombak-net.gpg] https://dist.cdzombak.net/deb/oss any oss\n" | sudo tee -a /etc/apt/sources.list.d/dist-cdzombak-net.list > /dev/null
+sudo apt-get update
 ```
 
 Then install `dirshard` via `apt-get`:
+
 ```shell
 sudo apt-get install dirshard
 ```
 
 ### Manual installation from build artifacts
 
-Pre-built binaries for Linux and macOS on various architectures are downloadable from each [GitHub Release](https://github.com/cdzombak/dirshard/releases). Debian packages for each release are available as well. 
+Pre-built binaries for Linux and macOS on various architectures are downloadable from each [GitHub Release](https://github.com/cdzombak/dirshard/releases). Debian packages for each release are available as well.
 
 ### Build and install locally
 
@@ -93,7 +101,7 @@ docker run --rm ghcr.io/cdzombak/dirshard:1 -ci FOOBAR.txt
 
 - Issues: https://github.com/cdzombak/dirshard/issues/new
 - Author: [Chris Dzombak](https://www.dzombak.com)
-    - [GitHub: @cdzombak](https://www.github.com/cdzombak)
+  - [GitHub: @cdzombak](https://www.github.com/cdzombak)
 
 ## License
 
