@@ -1,19 +1,20 @@
 # https://megalinter.io/configuration/
 
 ---
-APPLY_FIXES: all
+VALIDATE_ALL_CODEBASE: true
+
 DISABLE:
   - SPELL
   - DOCKERFILE
   - REPOSITORY
 DISABLE_LINTERS:
   - MAKEFILE_CHECKMAKE
+
 PLUGINS:
   - https://raw.githubusercontent.com/cdzombak/mega-linter-plugin-dockerfilelint/main/mega-linter-plugin-dockerfilelint/dockerfilelint.megalinter-descriptor.yml
 
 GO_REVIVE_CONFIG_FILE: ".revive.toml"
 
-VALIDATE_ALL_CODEBASE: true
 SHOW_ELAPSED_TIME: false
 FILEIO_REPORTER: false
 PRINT_ALPACA: false
