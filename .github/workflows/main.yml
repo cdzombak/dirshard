@@ -359,4 +359,3 @@ jobs:
           tags: no_entry
           title: ${{ github.event.repository.name }} ${{ needs.meta.outputs.bin_version }} build failed
           details: Build failed for ${{ github.event.repository.name }} version ${{ needs.meta.outputs.bin_version }}.
-
